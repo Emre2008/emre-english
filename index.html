@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emre's English Trainer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 55%, #000 100%);
+      color: #e5e7eb;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 760px;
+      background: #020617;
+      border-radius: 28px;
+      padding: 26px 30px 22px;
+      box-shadow:
+        0 0 0 1px rgba(148, 163, 184, 0.08),
+        0 30px 80px rgba(15, 23, 42, 0.9);
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      color: #f9fafb;
+      letter-spacing: 0.03em;
+    }
+
+    .header p {
+      margin-top: 6px;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .label {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      text-align: left;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .input-text {
+      flex: 1;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: none;
+      outline: none;
+      background: #020617;
+      box-shadow:
+        inset 0 0 0 1px rgba(148, 163, 184, 0.45),
+        0 0 18px rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      font-size: 14px;
+    }
+
+    .input-text::placeholder {
+      color: #6b7280;
+    }
+
+    .btn-main, .btn-small, .btn-ghost {
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.18s ease all;
+      white-space: nowrap;
+    }
+
+    .btn-main {
+      padding: 9px 18px;
+      background: #f97316;
+      color: #020617;
+      font-size: 14px;
+      box-shadow:
+        0 0 0 1px rgba(248, 250, 252, 0.1),
+        0 16px 40px rgba(249, 115, 22, 0.7);
+    }
+
+    .btn-main:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        0 0 0 1px rgba(248, 250, 252, 0.2),
+        0 20px 50px rgba(249, 115, 22, 0.85);
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+      background: #111827;
+      color: #e5e7eb;
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.5);
+    }
+
+    .btn-small:hover {
+      background: #1f2937;
+    }
+
+    .btn-ghost {
+      padding: 7px 14px;
+      font-size: 13px;
+      background: transparent;
+      color: #e5e7eb;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-ghost:hover {
+      background: rgba(148, 163, 184, 0.16);
+    }
+
+    .achievements {
+      margin-top: 10px;
+      border-radius: 20px;
+      padding: 14px 16px;
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.6), #020617);
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.9);
+      font-size: 13px;
+    }
+
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 14px;
+      margin-top: 8px;
+    }
+
+    .ach-item span.level {
+      font-weight: 600;
+      color: #f97316;
+    }
+
+    .ach-item span.val {
+      color: #e5e7eb;
+    }
+
+    .footer {
+      margin-top: 14px;
+      font-size: 11px;
+      color: #6b7280;
+      text-align: center;
+    }
+
+    .segmented {
+      display: inline-flex;
+      background: #020617;
+      padding: 4px;
+      border-radius: 999px;
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35);
+    }
+
+    .segmented button {
+      border: none;
+      background: transparent;
+      color: #e5e7eb;
+      padding: 8px 24px;
+      font-size: 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: 0.18s ease all;
+      opacity: 0.8;
+      white-space: nowrap;
+    }
+
+    .segmented button.active {
+      background: #f97316;
+      color: #020617;
+      box-shadow:
+        0 0 0 1px rgba(248, 250, 252, 0.08),
+        0 14px 35px rgba(249, 115, 22, 0.55);
+      opacity: 1;
+    }
+
+    .segmented button.locked {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .segmented button:not(.active):not(.locked):hover {
+      background: rgba(148, 163, 184, 0.16);
+      opacity: 1;
+    }
+
+    .panel {
+      margin-top: 10px;
+      border-radius: 20px;
+      padding: 18px 18px 14px;
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.6), #020617);
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.9);
+    }
+
+    .question-label,
+    .answer-label,
+    .correct-label {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      text-align: left;
+      margin-bottom: 4px;
+    }
+
+    .question-text {
+      font-size: 22px;
+      font-weight: 600;
+      color: #f97316;
+      text-align: left;
+      min-height: 32px;
+    }
+
+    .answer-row {
+      display: flex;
+      margin-top: 6px;
+      gap: 10px;
+    }
+
+    .answer-input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: none;
+      outline: none;
+      background: #020617;
+      box-shadow:
+        inset 0 0 0 1px rgba(148, 163, 184, 0.45),
+        0 0 20px rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      font-size: 15px;
+    }
+
+    .answer-input::placeholder {
+      color: #6b7280;
+    }
+
+    .correct-answer {
+      margin-top: 4px;
+      font-size: 15px;
+      text-align: left;
+      min-height: 20px;
+    }
+
+    .correct-answer span {
+      color: #22c55e;
+      font-weight: 500;
+    }
+
+    .stats-row {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .stats-row strong {
+      color: #e5e7eb;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .link {
+      color: #f97316;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. ARAYÜZ: LOGIN + BAŞARIMLAR -->
+  <div class="screen active" id="loginScreen">
+    <div class="header">
+      <h1>Emre’s English Trainer</h1>
+      <p>Giriş yap, seviyelerini gör, sonra çalışmaya başla 💪</p>
+    </div>
+
+    <div class="label">KULLANICI ADI</div>
+    <div class="input-row">
+      <input id="loginName" class="input-text" placeholder="Örn: emre" />
+      <button class="btn-main" onclick="login()">Giriş yap</button>
+    </div>
+
+    <div id="loginInfo" style="font-size:13px;color:#9ca3af;margin-bottom:6px;display:none;">
+      Giriş yapıldı: <span id="currentUserLabel" style="color:#e5e7eb;font-weight:600;"></span>
+    </div>
+
+    <div class="achievements" id="achievementsBox" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="label" style="margin-bottom:0;">SEVİYE BAŞARIMLARIN</div>
+        <button class="btn-small" onclick="goToLevelScreen()">Seviyelere git →</button>
+      </div>
+      <div class="achievements-grid" id="achievementsGrid">
+        <!-- JS dolduracak -->
+      </div>
+    </div>
+
+    <div class="footer">
+      Tüm veriler tarayıcında tutulur. İstediğin kadar kullanıcı oluşturabilirsin.
+    </div>
+  </div>
+
+  <!-- 2. ARAYÜZ: SEVİYE SEÇİMİ -->
+  <div class="screen" id="levelScreen">
+    <div class="header">
+      <h1>Seviyeni Seç</h1>
+      <p><span id="levelUserLabel">Kullanıcı: -</span></p>
+    </div>
+
+    <div class="top-bar">
+      <button class="btn-small" onclick="backToLogin()">← Giriş & başarımlar</button>
+      <span class="link" onclick="logout()">Çıkış yap</span>
+    </div>
+
+    <div class="label">SEVİYE</div>
+    <div class="segmented" id="levelButtons">
+      <button class="active" data-level="A1" onclick="selectLevel('A1')">A1</button>
+      <button data-level="A2" onclick="selectLevel('A2')">A2</button>
+      <button data-level="B1" onclick="selectLevel('B1')">B1</button>
+      <button data-level="B2" onclick="selectLevel('B2')">B2</button>
+    </div>
+
+    <div class="footer">
+      En az %80 başarıya ulaştığında bir sonraki seviye otomatik açılır.
+    </div>
+  </div>
+
+  <!-- 3. ARAYÜZ: SORU EKRANI -->
+  <div class="screen" id="quizScreen">
+    <div class="header">
+      <h1>Emre’s English Trainer</h1>
+      <p><span id="quizUserLabel">Kullanıcı: -</span> · Seviye: <span id="quizLevelLabel">A1</span></p>
+    </div>
+
+    <div class="top-bar">
+      <button class="btn-small" onclick="backToLevels()">← Seviye seçimine dön</button>
+
+      <div class="segmented" id="directionButtons">
+        <button class="active" data-dir="en-tr" onclick="changeDirection('en-tr')">İngilizce ➜ Türkçe</button>
+        <button data-dir="tr-en" onclick="changeDirection('tr-en')">Türkçe ➜ İngilizce</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="question-label">SORU</div>
+      <div class="question-text" id="questionText">Yükleniyor...</div>
+
+      <div class="answer-label">CEVABIN</div>
+      <div class="answer-row">
+        <input
+          id="answerInput"
+          class="answer-input"
+          placeholder="Cevabını yaz..."
+          onkeydown="if(event.key==='Enter'){checkAnswer();}"
+        />
+        <button class="btn-main" onclick="checkAnswer()">Kontrol et</button>
+      </div>
+
+      <div class="correct-label">DOĞRU CEVAP</div>
+      <div class="correct-answer" id="correctAnswer"></div>
+
+      <button class="btn-ghost" onclick="nextWord()">
+        Yeni kelime →
+      </button>
+
+      <div class="stats-row">
+        <div>Doğru: <strong id="statsCorrect">0</strong> / <span id="statsTotal">0</span></div>
+        <div>Başarı: <strong id="statsPercent">0%</strong></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Seviye başarıların login ekranındaki tabloda güncellenir.
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:5000";
+    const LEVELS = ["A1", "A2", "B1", "B2"];
+
+    // --- Kullanıcı & localStorage ---
+
+    let usersData = {};      // tüm kullanıcılar
+    let currentUser = null;  // string
+    let currentLevel = "A1";
+    let direction = "en-tr"; // en-tr | tr-en
+
+    function loadUsers() {
+      try {
+        usersData = JSON.parse(localStorage.getItem("trainer_users_v1") || "{}");
+      } catch {
+        usersData = {};
+      }
+    }
+
+    function saveUsers() {
+      localStorage.setItem("trainer_users_v1", JSON.stringify(usersData));
+    }
+
+    function defaultUserData() {
+      const stats = {};
+      LEVELS.forEach(l => {
+        stats[l] = { correct: 0, total: 0 };
+      });
+      return {
+        unlocked: { A1: true, A2: false, B1: false, B2: false },
+        stats
+      };
+    }
+
+    function getCurrentUserData() {
+      if (!currentUser) return null;
+      if (!usersData[currentUser]) {
+        usersData[currentUser] = defaultUserData();
+      }
+      return usersData[currentUser];
+    }
+
+    // --- Ekran değiştirici ---
+
+    function showScreen(id) {
+      document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
+
+    // --- 1. ekran: login + başarımlar ---
+
+    function login() {
+      const nameInput = document.getElementById("loginName");
+      const name = (nameInput.value || "").trim();
+      if (!name) return;
+
+      currentUser = name.toLowerCase();
+      if (!usersData[currentUser]) {
+        usersData[currentUser] = defaultUserData();
+        saveUsers();
+      }
+
+      document.getElementById("loginInfo").style.display = "block";
+      document.getElementById("currentUserLabel").innerText = currentUser;
+
+      renderAchievements();
+      document.getElementById("achievementsBox").style.display = "block";
+    }
+
+    function renderAchievements() {
+      const userData = getCurrentUserData();
+      if (!userData) return;
+
+      const grid = document.getElementById("achievementsGrid");
+      grid.innerHTML = "";
+
+      LEVELS.forEach(level => {
+        const stat = userData.stats[level] || { correct: 0, total: 0 };
+        const total = stat.total || 0;
+        const correct = stat.correct || 0;
+        const acc = total > 0 ? Math.round((correct / total) * 100) : 0;
+        const unlocked = userData.unlocked[level];
+
+        const div = document.createElement("div");
+        div.className = "ach-item";
+        div.innerHTML = `
+          <span class="level">${level}</span>:
+          <span class="val">${correct}/${total} doğru (${acc}%) · ${unlocked ? "Açık" : "Kilitli"}</span>
+        `;
+        grid.appendChild(div);
+      });
+    }
+
+    function goToLevelScreen() {
+      if (!currentUser) return;
+      const userData = getCurrentUserData();
+      document.getElementById("levelUserLabel").innerText = "Kullanıcı: " + currentUser;
+      updateLevelButtons(userData);
+      showScreen("levelScreen");
+    }
+
+    function backToLogin() {
+      renderAchievements();
+      showScreen("loginScreen");
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById("loginName").value = "";
+      document.getElementById("loginInfo").style.display = "none";
+      document.getElementById("achievementsBox").style.display = "none";
+      showScreen("loginScreen");
+    }
+
+    // --- 2. ekran: seviye seçimi ---
+
+    function updateLevelButtons(userData) {
+      const btns = document.querySelectorAll("#levelButtons button");
+      btns.forEach(btn => {
+        const lvl = btn.dataset.level;
+        const unlocked = userData.unlocked[lvl];
+        btn.classList.toggle("active", lvl === currentLevel);
+        btn.classList.toggle("locked", !unlocked);
+        btn.disabled = !unlocked;
+      });
+    }
+
+    function selectLevel(level) {
+      const userData = getCurrentUserData();
+      if (!userData.unlocked[level]) {
+        alert("Bu seviye kilitli. Önce önceki seviyede en az %80 başarıya ulaş.");
+        return;
+      }
+      currentLevel = level;
+      updateLevelButtons(userData);
+      startQuiz();
+    }
+
+    // --- 3. ekran: soru ekranı + API ---
+
+    let wordsByLevel = {}; // { A1: [{en,tr}, ...] }
+    let currentWord = null;
+    let correctSession = 0;
+    let totalSession = 0;
+
+    function sanitize(s) {
+      return (s || "").toLowerCase().trim();
+    }
+
+    async function loadLevelWords(level) {
+      if (wordsByLevel[level]) return;
+
+      setQuestionText("Sorular yükleniyor...");
+      setCorrectAnswer("");
+
+      try {
+        const res = await fetch(`${API_BASE}/api/questions?level=${level}`);
+        if (!res.ok) throw new Error("API hatası");
+        const data = await res.json();
+
+        const mapped = [];
+        for (const item of data) {
+          const q = item.q || "";
+          const a = item.a || "";
+          const parts = q.split(" ne demek?");
+          const en = (parts[0] || "").trim();
+          const tr = a.trim();
+          if (en && tr) mapped.push({ en, tr });
+        }
+
+        if (!mapped.length) throw new Error("Bu seviye için kelime bulunamadı.");
+        wordsByLevel[level] = mapped;
+      } catch (err) {
+        console.error(err);
+        wordsByLevel[level] = [{ en: "error", tr: "hata" }];
+      }
+    }
+
+    function setQuestionText(text) {
+      document.getElementById("questionText").innerText = text;
+    }
+
+    function setCorrectAnswer(text) {
+      const el = document.getElementById("correctAnswer");
+      if (!text) el.innerHTML = "";
+      else el.innerHTML = `<span>${text}</span>`;
+    }
+
+    function pickRandomWord() {
+      const list = wordsByLevel[currentLevel] || [];
+      if (!list.length) return null;
+      const idx = Math.floor(Math.random() * list.length);
+      return list[idx];
+    }
+
+    function renderWord() {
+      if (!currentWord) {
+        setQuestionText("Kelime bulunamadı.");
+        return;
+      }
+      if (direction === "en-tr") {
+        setQuestionText(currentWord.en);
+      } else {
+        setQuestionText(currentWord.tr);
+      }
+      document.getElementById("answerInput").value = "";
+      document.getElementById("answerInput").focus();
+      setCorrectAnswer("");
+    }
+
+    function updateQuizStatsUI() {
+      document.getElementById("statsCorrect").innerText = correctSession;
+      document.getElementById("statsTotal").innerText = totalSession;
+      const pct = totalSession > 0 ? Math.round((correctSession / totalSession) * 100) : 0;
+      document.getElementById("statsPercent").innerText = pct + "%";
+    }
+
+    function updateAchievementsFromSession(isCorrect) {
+  const userData = getCurrentUserData();
+  const stat = userData.stats[currentLevel];
+
+  // Toplam istatistikleri güncelle
+  stat.total += 1;
+  if (isCorrect) stat.correct += 1;
+
+  // 🔓 Yeni seviye açma KURALI:
+  // Bu seviyede en az 30 DOĞRU yapılınca bir sonraki seviye açılır.
+  const idx = LEVELS.indexOf(currentLevel);
+  if (stat.correct >= 30 && idx < LEVELS.length - 1) {
+    const nextLevel = LEVELS[idx + 1];
+    if (!userData.unlocked[nextLevel]) {
+      userData.unlocked[nextLevel] = true;
+      saveUsers();
+      alert(
+        `Tebrikler! ${currentLevel} seviyesinde 30 doğruya ulaştın ve ` +
+        `${nextLevel} seviyesinin kilidini açtın 🎉`
+      );
+      return; // aynı anda tekrar kontrol etmesin
+    }
+  }
+
+  saveUsers();
+}
+
+    async function startQuiz() {
+      if (!currentUser) return;
+      showScreen("quizScreen");
+
+      document.getElementById("quizUserLabel").innerText = "Kullanıcı: " + currentUser;
+      document.getElementById("quizLevelLabel").innerText = currentLevel;
+
+      correctSession = 0;
+      totalSession = 0;
+      updateQuizStatsUI();
+
+      setActiveDirectionButton();
+
+      await loadLevelWords(currentLevel);
+      currentWord = pickRandomWord();
+      renderWord();
+    }
+
+    function backToLevels() {
+      const userData = getCurrentUserData();
+      updateLevelButtons(userData);
+      renderAchievements(); // login ekranındaki başarımlar güncellensin
+      showScreen("levelScreen");
+    }
+
+    function changeDirection(newDir) {
+      direction = newDir;
+      setActiveDirectionButton();
+      renderWord();
+    }
+
+    function setActiveDirectionButton() {
+      const btns = document.querySelectorAll("#directionButtons button");
+      btns.forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.dir === direction);
+      });
+    }
+
+    function checkAnswer() {
+      if (!currentWord) return;
+      const input = document.getElementById("answerInput").value;
+      const user = sanitize(input);
+
+      let correct;
+      if (direction === "en-tr") correct = sanitize(currentWord.tr);
+      else correct = sanitize(currentWord.en);
+
+      const isCorrect = user === correct;
+      totalSession += 1;
+      if (isCorrect) {
+        correctSession += 1;
+        setCorrectAnswer(
+          (direction === "en-tr" ? currentWord.tr : currentWord.en) + " ✅"
+        );
+      } else {
+        setCorrectAnswer(
+          (direction === "en-tr" ? currentWord.tr : currentWord.en) + " ❌"
+        );
+      }
+
+      updateQuizStatsUI();
+      updateAchievementsFromSession(isCorrect);
+    }
+
+    function nextWord() {
+      if (!wordsByLevel[currentLevel]) return;
+      currentWord = pickRandomWord();
+      renderWord();
+    }
+
+    // --- init ---
+
+    loadUsers();
+  </script>
+</body>
+</html>
